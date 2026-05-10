@@ -3,6 +3,8 @@ package manual
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/bnjns/plex-artwork-uploader/internal/config"
 	"github.com/bnjns/plex-artwork-uploader/internal/logger"
 	"github.com/bnjns/plex-artwork-uploader/internal/plex"
@@ -10,7 +12,6 @@ import (
 	"github.com/bnjns/plex-artwork-uploader/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 var (
@@ -105,7 +106,7 @@ func processShow(ctx context.Context, client *plex.Client, logger *logrus.Entry,
 	if seasonNumStr != "" && episodeNumStr != "" {
 		seasonNum, _ := strconv.Atoi(seasonNumStr)
 		episodeNum, _ := strconv.Atoi(episodeNumStr)
-		episode, err := client.FindEpisode(showGuid, seasonNum, episodeNum)
+		episode, err := client.FindEpisode(ctx, showGuid, seasonNum, episodeNum)
 		if err != nil {
 			return err
 		}
@@ -113,14 +114,14 @@ func processShow(ctx context.Context, client *plex.Client, logger *logrus.Entry,
 		return client.UploadArtwork(ctx, logger, episode.RatingKey, fmt.Sprintf("S%02dE%02d", seasonNum, episodeNum), artwork)
 	} else if seasonNumStr != "" {
 		seasonNum, _ := strconv.Atoi(seasonNumStr)
-		season, err := client.FindSeason(showGuid, seasonNum)
+		season, err := client.FindSeason(ctx, showGuid, seasonNum)
 		if err != nil {
 			return err
 		}
 
 		return client.UploadArtwork(ctx, logger, season.RatingKey, fmt.Sprintf("S%02d", seasonNum), artwork)
 	} else {
-		item, err := client.FindItemForGuid(showGuid)
+		item, err := client.FindItemForGuid(ctx, showGuid)
 		if err != nil {
 			return fmt.Errorf("error finding show with guid %s: %w", showGuid, err)
 		}
